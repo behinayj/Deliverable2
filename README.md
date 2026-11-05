@@ -23,3 +23,10 @@ Where injections show: alarms for nurse1/tech1, inventory for pharm1, cabinet he
 To reset the demo (clear all alarms, events and simulated cabinet state), stop the server and delete the `data/` folder.
 
 State is held in memory. Events are persisted to `data/events.jsonl` and the simulated cabinets' state to `data/sim_state.json`; ADCs, thresholds and accounts are in `config/*.json`.
+
+Username	Password	Role
+nurse1
+pharm1
+tech1
+admin1
+it1
