@@ -1,0 +1,44 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Simulated ADC</title></head>
+<body>
+<h1>Simulated ADC panel</h1>
+<p>HMS dashboard: <a href="/dashboard">/dashboard</a></p>
+{% if message %}<p><b>{{ message }}</b></p>{% endif %}
+{% if not enabled %}
+<p>Simulation is disabled. Start the HMS with <code>--simulate</code>.</p>
+{% else %}
+<p>Each cabinet sends HELLO on start, then STATUS every 5 s. Inject a message or fault below.</p>
+<form method="post" action="/sim/inject">
+ <label>Cabinet <select name="adc" id="adc" onchange="upd()">{% for a in adcs %}<option>{{ a }}</option>{% endfor %}</select></label>
+ <label>Injection <select name="fault" id="fault" onchange="upd()">{% for f in faults %}<option>{{ f }}</option>{% endfor %}</select></label>
+ <label id="atrow">Alarm type <select name="alarm_type" id="atype"></select></label>
+ <button>Inject</button>
+</form>
+<script>
+var ALL = {{ alarm_types|list|tojson }}, ACTIVE = {{ active|tojson }};
+function upd() {
+  var f = document.getElementById("fault").value, a = document.getElementById("adc").value, sel = document.getElementById("atype");
+  var show = f === "ALARM" || f === "CLEAR_ALARM", list = f === "CLEAR_ALARM" ? ACTIVE[a] : ALL;
+  document.getElementById("atrow").hidden = !show; sel.disabled = !show;
+  sel.innerHTML = list.length ? list.map(function (t) { return "<option>" + t + "</option>"; }).join("") : "<option value=''>(no active alarms)</option>";
+}
+upd();
+</script>
+<h2>Recent replies from the HMS (newest first)</h2>
+<table border="1"><tr><th>Cabinet</th><th>Replies</th></tr>
+{% for a in adcs %}<tr><td>{{ a }}</td><td>{% for r in receipts[a] %}{{ r.type }} seq {{ r.seq }}: {{ r.result or ("accepted" if r.accepted else "rejected") }} {{ r.reason }}<br>{% else %}-{% endfor %}</td></tr>{% endfor %}
+</table>
+<h2>Where each injection shows on the HMS page</h2>
+<table border="1"><tr><th>Injection</th><th>HMS effect</th><th>Visible to</th></tr>
+<tr><td>ALARM</td><td>Active alarms list, with ADC and severity (critical first)</td><td>nurse1, tech1</td></tr>
+<tr><td>CLEAR_ALARM</td><td>Alarm removed from the list</td><td>nurse1, tech1</td></tr>
+<tr><td>LOW_STOCK / RESTOCK</td><td>"ADC-NN requires inventory attention", inventory ATTENTION_REQUIRED and a LOW_STOCK warning alarm / all three undone</td><td>cabinets: nurse1, pharm1, tech1; inventory: pharm1</td></tr>
+<tr><td>BAD_QUANTITY</td><td>Inventory INVALID until the next valid STATUS (up to 5 s)</td><td>pharm1</td></tr>
+<tr><td>HEALTH_FAULT / HEALTH_OK</td><td>Cabinet health FAULT (MOTOR_STALL) / OK</td><td>tech1</td></tr>
+<tr><td>LINK_LOSS</td><td>After 30 s: "Communication with ADC-NN has been lost", data NOT CURRENT, alarms marked "may not be current"</td><td>all roles that view cabinets or alarms</td></tr>
+<tr><td>RESTORE</td><td>Link CONNECTED again; alarms raised during the loss are replayed</td><td>same as above</td></tr>
+<tr><td>DUPLICATE</td><td>Nothing on the HMS; reply above is IGNORED</td><td>-</td></tr>
+<tr><td>DAMAGED / UNREGISTERED_ID</td><td>Rejected messages list; reply above is REJECTED</td><td>tech1, pharm1, admin1</td></tr>
+</table>
+{% endif %}
+</body></html>

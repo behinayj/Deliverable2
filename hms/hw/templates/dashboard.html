@@ -1,0 +1,82 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>HMS Dashboard</title></head>
+<body>
+<h1>Hospital Monitoring System</h1>
+{% if message %}<p><b>{{ message }}</b></p>{% endif %}
+{% if not dash %}
+<h2>Login</h2>
+<form method="post" action="/login">
+ <label>Username <input name="username"></label>
+ <label>Password <input name="password" type="password"></label>
+ <button>Log in</button>
+</form>
+<p>Simulated ADC page: <a href="/sim">/sim</a></p>
+{% else %}
+<script>setInterval(function(){ if (!document.activeElement || ["INPUT", "SELECT"].indexOf(document.activeElement.tagName) < 0) location.reload(); }, {{ refresh * 1000 }});</script>
+<p>Logged in as {{ dash.user }} ({{ dash.role }}).
+<form method="post" action="/logout"><button>Log out</button></form></p>
+<p>Mode: <b>{{ dash.mode }}</b> {% if dash.banner %}- <b>{{ dash.banner }}</b>{% endif %}</p>
+
+{% if dash.alarms is not none %}
+<h2>Active alarms</h2>
+{% if dash.alarms %}<table border="1"><tr><th>Severity</th><th>ADC</th><th>Alarm</th><th>Type</th><th>Received (UTC)</th><th>Note</th></tr>
+{% for a, note in dash.alarms %}<tr><td>{{ a.severity.value }}</td><td>{{ a.adc_id }}</td><td>{{ a.alarm_id }}</td><td>{{ a.alarm_type }}</td><td>{{ a.received_at.strftime("%H:%M:%S") }}</td><td>{{ note }}</td></tr>{% endfor %}
+</table>{% else %}<p>No active alarms.</p>{% endif %}
+{% endif %}
+
+{% if dash.adcs is not none %}
+<h2>Cabinets</h2>
+<table border="1"><tr><th>ADC</th><th>Link</th><th>Data age (s)</th><th>Data</th><th>Inventory attention</th></tr>
+{% for c in dash.adcs %}<tr><td>{{ c.adc_id }}</td>
+<td>{% if c.link == "LOST" %}Communication with {{ c.adc_id }} has been lost{% else %}{{ c.link }}{% endif %}</td>
+<td>{{ c.age_s if c.age_s is not none else "-" }}</td><td>{{ c.marking }}</td><td>{{ c.adc_id + " requires inventory attention" if c.attention else "" }}</td></tr>{% endfor %}
+</table>
+{% endif %}
+
+{% if dash.inventory is not none %}
+<h2>Inventory</h2>
+<table border="1"><tr><th>ADC</th><th>Medication</th><th>Quantity</th><th>Threshold</th><th>Status</th><th>Data</th></tr>
+{% for adc, (rows, mark) in dash.inventory.items() %}{% for r in rows %}
+<tr><td>{{ adc }}</td><td>{{ r.med_id }}</td><td>{{ r.qty if r.qty is not none else "-" }}</td><td>{{ r.threshold }}</td><td>{{ r.status.value }}</td><td>{{ mark }}</td></tr>
+{% endfor %}{% endfor %}
+</table>
+{% endif %}
+
+{% if dash.health is not none %}
+<h2>Cabinet health</h2>
+<table border="1"><tr><th>ADC</th><th>Health</th><th>Faults</th><th>Data</th></tr>
+{% for adc, (h, mark) in dash.health.items() %}<tr><td>{{ adc }}</td><td>{{ h.status.value }}</td><td>{{ h.details.faults|join(", ") if h.details else "" }}</td><td>{{ mark }}</td></tr>{% endfor %}
+</table>
+{% endif %}
+{% set perms = dash.permissions|map(attribute="value")|list %}
+{% if "CONTROL_MODE" in perms %}
+<h2>Mode control</h2>
+<form method="post" action="/mode">
+ <select name="event"><option>ENTER_MAINTENANCE</option><option>EXIT_MAINTENANCE</option><option>RESTART</option><option>CRITICAL_FAULT</option></select>
+ <button>Send</button>
+</form>
+{% endif %}
+
+{% if dash.rejected_recent is not none %}
+<h2>Rejected messages (today)</h2>
+{% if dash.rejected_recent %}<ul>{% for e in dash.rejected_recent %}<li>{{ e.t_detect.strftime("%H:%M:%S") }} from {{ e.source }}: {{ e.details.reason }}</li>{% endfor %}</ul>
+{% else %}<p>None.</p>{% endif %}
+{% endif %}
+
+{% if "VIEW_HISTORICAL_DATA" in perms or "GENERATE_REPORT" in perms %}
+<h2>History and reports</h2>
+<form method="get" action="/dashboard">
+ <label>From <input name="from" value="{{ params.get('from', today) }}"></label>
+ <label>To <input name="to" value="{{ params.get('to', today) }}"></label>
+ <label>ADC (optional) <input name="adc" value="{{ params.get('adc', '') }}"></label>
+ {% if "VIEW_HISTORICAL_DATA" in perms %}<button>View history</button>{% endif %}
+ {% if "GENERATE_REPORT" in perms %}<button formaction="/report.csv">Download CSV report</button>{% endif %}
+</form>
+{% if history is not none %}
+<table border="1"><tr><th>Time (UTC)</th><th>Source</th><th>Event</th><th>User</th><th>Details</th></tr>
+{% for e in history|reverse %}{% if e.type.value != "STATUS_RECEIVED" %}<tr><td>{{ e.t_detect.strftime("%Y-%m-%d %H:%M:%S") }}</td><td>{{ e.source }}</td><td>{{ e.type.value }}</td><td>{{ e.user or "" }}</td><td>{{ e.details }}</td></tr>{% endif %}{% endfor %}
+</table>
+{% endif %}
+{% endif %}
+{% endif %}
+</body></html>

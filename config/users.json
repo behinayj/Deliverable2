@@ -1,0 +1,32 @@
+{
+  "nurse1": {
+    "role": "NURSE",
+    "enabled": true,
+    "salt": "fe040b0911107cb153f5c9537fa05fdf",
+    "hash": "7a339068424299af802463d734734bbadec97136d89f8005da59c1d777469e2b"
+  },
+  "pharm1": {
+    "role": "PHARMACIST",
+    "enabled": true,
+    "salt": "342a7ca93fc65c7e76f523f107371933",
+    "hash": "96d2a5f51941353953cd6d043e05783af6290c30f68d021fa29feb08f93065a8"
+  },
+  "tech1": {
+    "role": "TECHNICIAN",
+    "enabled": true,
+    "salt": "ddcd636d98dbb897a143d7313967ea4a",
+    "hash": "b2fe0c4656d562b523623dad6ffe4ca9b7085944050205599e6912843770738c"
+  },
+  "admin1": {
+    "role": "HOSPITAL_ADMIN",
+    "enabled": true,
+    "salt": "ee591d01055564a56b53bc6c3c4b622d",
+    "hash": "345bd9c6b60bcca5f0eb8bfe63540ae973837950c1d54122bf7aadf0659f4628"
+  },
+  "it1": {
+    "role": "IT_SPECIALIST",
+    "enabled": true,
+    "salt": "1ec1c2860724b34708b3556eb46b8719",
+    "hash": "08a57c5df55c8b8c8cc2060a36fcb314d94d39c794476d6fc12d15988bae7626"
+  }
+}

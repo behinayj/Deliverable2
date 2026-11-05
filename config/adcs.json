@@ -1,0 +1,5 @@
+[
+  {"adcId": "ADC-01", "location": "Ward 3 East", "expectedPeriodS": 5},
+  {"adcId": "ADC-02", "location": "Emergency", "expectedPeriodS": 5},
+  {"adcId": "ADC-03", "location": "ICU", "expectedPeriodS": 5}
+]

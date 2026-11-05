@@ -1,0 +1,1 @@
+{"ADC-01": {"inventory": {"MED-ACET-500": 40, "MED-MORPH-10": 20}, "health": "FAULT", "next_alarm": 3, "alarms": []}, "ADC-02": {"inventory": {"MED-ACET-500": 40, "MED-MORPH-10": 20}, "health": "OK", "next_alarm": 1, "alarms": []}, "ADC-03": {"inventory": {"MED-ACET-500": 40, "MED-MORPH-10": 20}, "health": "OK", "next_alarm": 1, "alarms": []}}
